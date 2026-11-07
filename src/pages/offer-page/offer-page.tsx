@@ -1,7 +1,10 @@
 import { useParams } from 'react-router-dom';
-import Card from '../../components/card/card';
 import CommentForm from '../../components/comment-form/comment-form';
+import ReviewsList from '../../components/reviews-list/reviews-list';
+import NearPlacesList from '../../components/near-places-list/near-places-list';
+import Map from '../../components/map/map';
 import type { Offer } from '../../mocks/offers';
+import { reviews } from '../../mocks/reviews';
 
 type OfferPageProps = {
   offers: Offer[];
@@ -19,7 +22,10 @@ function OfferPage({ offers }: OfferPageProps): JSX.Element {
     );
   }
 
-  const nearOffers = offers.filter((item) => item.id !== offer.id).slice(0, 3);
+  const nearOffers = offers
+    .filter((item) => item.id !== offer.id)
+    .slice(0, 3);
+
   const ratingWidth = `${Math.round(offer.rating) * 20}%`;
 
   return (
@@ -90,10 +96,14 @@ function OfferPage({ offers }: OfferPageProps): JSX.Element {
                   <span style={{ width: ratingWidth }}></span>
                   <span className="visually-hidden">Rating</span>
                 </div>
-                <span className="offer__rating-value rating__value">{offer.rating}</span>
+                <span className="offer__rating-value rating__value">
+                  {offer.rating}
+                </span>
               </div>
               <ul className="offer__features">
-                <li className="offer__feature offer__feature--entire">{offer.type}</li>
+                <li className="offer__feature offer__feature--entire">
+                  {offer.type}
+                </li>
                 <li className="offer__feature offer__feature--bedrooms">
                   {offer.bedrooms} Bedrooms
                 </li>
@@ -140,60 +150,20 @@ function OfferPage({ offers }: OfferPageProps): JSX.Element {
                   <p className="offer__text">{offer.description}</p>
                 </div>
               </div>
-              <section className="offer__reviews reviews">
-                <h2 className="reviews__title">
-                  Reviews &middot; <span className="reviews__amount">1</span>
-                </h2>
-                <ul className="reviews__list">
-                  <li className="reviews__item">
-                    <div className="reviews__user user">
-                      <div className="reviews__avatar-wrapper user__avatar-wrapper">
-                        <img
-                          className="reviews__avatar user__avatar"
-                          src="img/avatar-max.jpg"
-                          width="54"
-                          height="54"
-                          alt="Reviews avatar"
-                        />
-                      </div>
-                      <span className="reviews__user-name">Max</span>
-                    </div>
-                    <div className="reviews__info">
-                      <div className="reviews__rating rating">
-                        <div className="reviews__stars rating__stars">
-                          <span style={{ width: '80%' }}></span>
-                          <span className="visually-hidden">Rating</span>
-                        </div>
-                      </div>
-                      <p className="reviews__text">
-                        A quiet cozy and picturesque that hides behind a river by the unique lightness of Amsterdam.
-                      </p>
-                      <time className="reviews__time" dateTime="2019-04-24">
-                        April 2019
-                      </time>
-                    </div>
-                  </li>
-                </ul>
-                <CommentForm />
-              </section>
+              <ReviewsList reviews={reviews} />
+              <CommentForm />
             </div>
           </div>
-          <section className="offer__map map"></section>
+          <section className="offer__map map">
+            <Map offers={nearOffers} activeOfferId={offer.id} />
+          </section>
         </section>
         <div className="container">
           <section className="near-places places">
             <h2 className="near-places__title">
               Other places in the neighbourhood
             </h2>
-            <div className="near-places__list places__list">
-              {nearOffers.map((nearOffer) => (
-                <Card
-                  key={nearOffer.id}
-                  offer={nearOffer}
-                  variant="near-places"
-                />
-              ))}
-            </div>
+            <NearPlacesList offers={nearOffers} />
           </section>
         </div>
       </main>
