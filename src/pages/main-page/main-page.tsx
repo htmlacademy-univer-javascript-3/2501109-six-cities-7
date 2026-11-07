@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Offer } from '../../mocks/offers';
 import OffersList from '../../components/offers-list/offers-list';
+import Map from '../../components/map/map';
 
 type MainPageProps = {
   offers: Offer[];
@@ -12,6 +13,10 @@ function MainPage({ offers }: MainPageProps): JSX.Element {
   const handleCardHover = (id: string | null) => {
     setActiveOfferId(id);
   };
+
+  const amsterdamOffers = offers.filter(
+    (offer) => offer.city.name === 'Amsterdam'
+  );
 
   return (
     <div className="page page--gray page--main">
@@ -91,7 +96,7 @@ function MainPage({ offers }: MainPageProps): JSX.Element {
           <div className="cities__places-container container">
             <section className="cities__places places">
               <h2 className="visually-hidden">Places</h2>
-              <b className="places__found">{offers.length} places to stay in Amsterdam</b>
+              <b className="places__found">{amsterdamOffers.length} places to stay in Amsterdam</b>
               <form className="places__sorting" action="#" method="get">
                 <span className="places__sorting-caption">Sort by</span>
                 <span className="places__sorting-type" tabIndex={0}>
@@ -107,10 +112,12 @@ function MainPage({ offers }: MainPageProps): JSX.Element {
                   <li className="places__option" tabIndex={0}>Top rated first</li>
                 </ul>
               </form>
-              <OffersList offers={offers} onCardHover={handleCardHover} />
+              <OffersList offers={amsterdamOffers} onCardHover={handleCardHover} />
             </section>
             <div className="cities__right-section">
-              <section className="cities__map map" data-active-id={activeOfferId ?? ''}></section>
+              <section className="cities__map map">
+                <Map offers={amsterdamOffers} activeOfferId={activeOfferId} />
+              </section>
             </div>
           </div>
         </div>
