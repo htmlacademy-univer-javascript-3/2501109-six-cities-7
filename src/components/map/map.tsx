@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { Icon, Marker, layerGroup } from 'leaflet';
+import L, { Icon, Marker, layerGroup } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { Offer } from '../../mocks/offers';
+import type { City, Offer } from '../../mocks/offers';
 
 type MapProps = {
   offers: Offer[];
-  activeOfferId: string | null;
+  city: City;
+  activeOfferId?: string | null;
 };
 
 const defaultCustomIcon = new Icon({
@@ -20,66 +21,63 @@ const currentCustomIcon = new Icon({
   iconAnchor: [13, 39],
 });
 
-function Map({ offers, activeOfferId }: MapProps): JSX.Element {
+function Map({ offers, city, activeOfferId }: MapProps): JSX.Element {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<ReturnType<typeof import('leaflet').map> | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
-    if (mapRef.current && !mapInstanceRef.current) {
-      const map = import('leaflet').then((L) => {
-        const instance = L.map(mapRef.current!, {
-          center: {
-            lat: 52.35514938496378,
-            lng: 4.673877537499948,
-          },
-          zoom: 8,
-        });
+    let instance: L.Map | null = null;
 
-        L.tileLayer(
-          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          {
-            attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          }
-        ).addTo(instance);
-
-        mapInstanceRef.current = instance;
-        return instance;
+    if (mapRef.current) {
+      instance = L.map(mapRef.current, {
+        center: {
+          lat: city.location.latitude,
+          lng: city.location.longitude,
+        },
+        zoom: city.location.zoom,
       });
 
-      return () => {
-        map.then((instance) => {
-          instance.remove();
-          mapInstanceRef.current = null;
-        });
-      };
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(instance);
+
+      mapInstanceRef.current = instance;
     }
-  }, []);
+
+    return () => {
+      if (instance) {
+        instance.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [city.location.latitude, city.location.longitude, city.location.zoom]);
 
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      const markers = layerGroup();
-
-      offers.forEach((offer) => {
-        const marker = new Marker(
-          {
-            lat: offer.location.latitude,
-            lng: offer.location.longitude,
-          },
-          {
-            icon: offer.id === activeOfferId ? currentCustomIcon : defaultCustomIcon,
-          }
-        );
-
-        marker.addTo(markers);
-      });
-
-      markers.addTo(mapInstanceRef.current);
-
-      return () => {
-        mapInstanceRef.current?.removeLayer(markers);
-      };
+    if (!mapInstanceRef.current) {
+      return;
     }
+
+    const markers = layerGroup();
+
+    offers.forEach((offer) => {
+      const marker = new Marker(
+        {
+          lat: offer.location.latitude,
+          lng: offer.location.longitude,
+        },
+        {
+          icon: offer.id === activeOfferId ? currentCustomIcon : defaultCustomIcon,
+        }
+      );
+      marker.addTo(markers);
+    });
+
+    markers.addTo(mapInstanceRef.current);
+
+    return () => {
+      markers.remove();
+    };
   }, [offers, activeOfferId]);
 
   return <div ref={mapRef} style={{ height: '100%' }} />;
