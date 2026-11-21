@@ -1,24 +1,42 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { changeCity } from '../../store/action';
-import { CITIES } from '../../const';
+import { CITIES } from '../../mocks/offers';
+import type { City } from '../../mocks/offers';
 import OffersList from '../../components/offers-list/offers-list';
 import CitiesList from '../../components/cities-list/cities-list';
 import Map from '../../components/map/map';
-import type { City } from '../../mocks/offers';
+import Sort from '../../components/sort/sort';
+import { SortType } from '../../components/sort/const';
 
 function MainPage(): JSX.Element {
   const dispatch = useAppDispatch();
-
   const city = useAppSelector((state) => state.city);
   const offers = useAppSelector((state) => state.offers);
-
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
+  const [currentSort, setCurrentSort] = useState<SortType>(SortType.Popular);
 
-  const cityOffers = offers.filter((offer) => offer.city.name === city.name);
+  const cityOffers = useMemo(() => {
+    const filtered = offers.filter((offer) => offer.city.name === city.name);
+
+    switch (currentSort) {
+      case SortType.PriceLowToHigh:
+        return [...filtered].sort((a, b) => a.price - b.price);
+      case SortType.PriceHighToLow:
+        return [...filtered].sort((a, b) => b.price - a.price);
+      case SortType.TopRated:
+        return [...filtered].sort((a, b) => b.rating - a.rating);
+      default:
+        return filtered;
+    }
+  }, [offers, city.name, currentSort]);
 
   const handleCityChange = (newCity: City) => {
     dispatch(changeCity(newCity));
+  };
+
+  const handleCardHover = (id: string | null) => {
+    setActiveOfferId(id);
   };
 
   return (
@@ -68,41 +86,26 @@ function MainPage(): JSX.Element {
             />
           </section>
         </div>
-
         <div className="cities">
           <div className="cities__places-container container">
             <section className="cities__places places">
               <h2 className="visually-hidden">Places</h2>
-
               <b className="places__found">
                 {cityOffers.length} places to stay in {city.name}
               </b>
-
-              <form className="places__sorting" action="#" method="get">
-                <span className="places__sorting-caption">Sort by</span>
-                <span className="places__sorting-type" tabIndex={0}>
-                  Popular
-                  <svg className="places__sorting-arrow" width="7" height="4">
-                    <use xlinkHref="#icon-arrow-select"></use>
-                  </svg>
-                </span>
-                <ul className="places__options places__options--custom places__options--opened">
-                  <li className="places__option places__option--active" tabIndex={0}>Popular</li>
-                  <li className="places__option" tabIndex={0}>Price: low to high</li>
-                  <li className="places__option" tabIndex={0}>Price: high to low</li>
-                  <li className="places__option" tabIndex={0}>Top rated first</li>
-                </ul>
-              </form>
-
+              <Sort currentSort={currentSort} onSortChange={setCurrentSort} />
               <OffersList
                 offers={cityOffers}
-                onCardHover={setActiveOfferId}
+                onCardHover={handleCardHover}
               />
             </section>
-
             <div className="cities__right-section">
               <section className="cities__map map">
-                <Map offers={cityOffers} city={city} activeOfferId={activeOfferId} />
+                <Map
+                  offers={cityOffers}
+                  city={city}
+                  activeOfferId={activeOfferId}
+                />
               </section>
             </div>
           </div>
