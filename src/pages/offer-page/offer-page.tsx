@@ -1,17 +1,15 @@
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 import CommentForm from '../../components/comment-form/comment-form';
 import ReviewsList from '../../components/reviews-list/reviews-list';
 import NearPlacesList from '../../components/near-places-list/near-places-list';
 import Map from '../../components/map/map';
-import type { Offer } from '../../mocks/offers';
 import { reviews } from '../../mocks/reviews';
 
-type OfferPageProps = {
-  offers: Offer[];
-};
-
-function OfferPage({ offers }: OfferPageProps): JSX.Element {
+function OfferPage(): JSX.Element {
   const { id } = useParams<{ id: string }>();
+  const offers = useSelector((state: RootState) => state.offers);
   const offer = offers.find((item) => item.id === id);
 
   if (!offer) {
@@ -23,7 +21,7 @@ function OfferPage({ offers }: OfferPageProps): JSX.Element {
   }
 
   const nearOffers = offers
-    .filter((item) => item.id !== offer.id)
+    .filter((item) => item.id !== offer.id && item.city.name === offer.city.name)
     .slice(0, 3);
 
   const ratingWidth = `${Math.round(offer.rating) * 20}%`;
@@ -155,7 +153,7 @@ function OfferPage({ offers }: OfferPageProps): JSX.Element {
             </div>
           </div>
           <section className="offer__map map">
-            <Map offers={nearOffers} activeOfferId={offer.id} />
+            <Map offers={nearOffers} city={offer.city} />
           </section>
         </section>
         <div className="container">

@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 import Card from '../../components/card/card';
-import type { Offer } from '../../mocks/offers';
 
-type FavoritesPageProps = {
-  offers: Offer[];
-};
+function FavoritesPage(): JSX.Element {
+  const offers = useSelector((state: RootState) => state.offers);
+  const favoriteOffers = offers.filter((offer) => offer.isFavorite);
 
-function FavoritesPage({ offers }: FavoritesPageProps): JSX.Element {
-  const offersByCity = offers.reduce<Record<string, Offer[]>>((acc, offer) => {
+  const offersByCity = favoriteOffers.reduce<Record<string, typeof favoriteOffers>>((acc, offer) => {
     const cityName = offer.city.name;
     if (!acc[cityName]) {
       acc[cityName] = [];
@@ -38,7 +38,7 @@ function FavoritesPage({ offers }: FavoritesPageProps): JSX.Element {
                   <a className="header__nav-link header__nav-link--profile" href="#">
                     <div className="header__avatar-wrapper user__avatar-wrapper"></div>
                     <span className="header__user-name user__name">Oliver.conner@gmail.com</span>
-                    <span className="header__favorite-count">{offers.length}</span>
+                    <span className="header__favorite-count">{favoriteOffers.length}</span>
                   </a>
                 </li>
                 <li className="header__nav-item">
